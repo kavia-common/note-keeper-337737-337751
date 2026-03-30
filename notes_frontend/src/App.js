@@ -351,7 +351,10 @@ function App() {
 
       <footer className="appFooter">
         <span className="appFooter__text">
-          Backend: <code>http://localhost:3001</code>
+          Backend:{" "}
+          <code>
+            {process.env.REACT_APP_NOTES_API_BASE_URL || "http://localhost:3001"}
+          </code>
         </span>
       </footer>
     </div>

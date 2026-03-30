@@ -18,10 +18,26 @@ function getBaseUrl() {
   );
 }
 
+/**
+ * Normalize list/search responses across possible backend shapes.
+ *
+ * Contract:
+ * - Input may be either:
+ *    a) Note[] (legacy/simple backends)
+ *    b) { items: Note[], total: number } (current FastAPI backend)
+ * - Output is always Note[].
+ */
+function normalizeNoteListResponse(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.items)) return data.items;
+  return [];
+}
+
 // PUBLIC_INTERFACE
 export async function listNotes() {
   /** List all notes (newest-first or backend default ordering). */
-  return await requestJson(`${getBaseUrl()}/notes`, { method: "GET" });
+  const data = await requestJson(`${getBaseUrl()}/notes`, { method: "GET" });
+  return normalizeNoteListResponse(data);
 }
 
 // PUBLIC_INTERFACE
@@ -50,12 +66,13 @@ export async function deleteNote(id) {
   });
 }
 
-// PUBLIC_INTERFACE
+ // PUBLIC_INTERFACE
 export async function searchNotes(q) {
   /** Search notes by query string. */
   const url = new URL(`${getBaseUrl()}/notes/search`);
   url.searchParams.set("q", q);
-  return await requestJson(url.toString(), { method: "GET" });
+  const data = await requestJson(url.toString(), { method: "GET" });
+  return normalizeNoteListResponse(data);
 }
 
 /**
